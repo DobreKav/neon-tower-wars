@@ -272,10 +272,12 @@ export class Game {
   startWave() {
     if (this.waveActive) return;
     this.currentWave++;
+    this.waveKills = 0;
     this.waveActive = true;
     this.waves.startWave(this.currentWave);
     this.ui.setWaveButton(true, this.currentWave);
     this.ui.updateHUD();
+    this.ui.showWaveAnnouncement(this.currentWave);
     this.audio.playSound('wave_start');
     this.emit('waveStart', { wave: this.currentWave });
 
@@ -318,6 +320,7 @@ export class Game {
     }
     // Sync bestAnyWave for weekly mission tracking
     this.player.bestAnyWave = Math.max(0, ...Object.values(this.player.bestWave));
+    this._checkMapUnlocks();
     this.save.save();
     this.achievements.check('wave', this.currentWave);
     this.progression.onWaveComplete(this.currentWave);
@@ -340,14 +343,35 @@ export class Game {
     this.save.save();
   }
 
-  startEndlessMode() {
-    this.endlesMode  = true;
+  startEndlessMode() {    this.endlesMode  = true;
     this.totalWaves  = 9999;
     this.state       = STATE.WAVE_PREP;
     this.ui.showHUD();
     this.ui.setWaveButton(false, 0);
     this.ui.updateHUD();
     this.audio.playMusic('game');
+  }
+
+  // ── Map unlock check ─────────────────────────────────────────────────────────
+  _checkMapUnlocks() {
+    const p = this.player;
+    const unlocked = [];
+    if (!p.unlockedMaps.includes('desert') && (p.bestWave['forest'] || 0) >= 10) {
+      p.unlockedMaps.push('desert');
+      unlocked.push('Desert Dunes');
+    }
+    if (!p.unlockedMaps.includes('volcano') && (p.bestWave['desert'] || 0) >= 25) {
+      p.unlockedMaps.push('volcano');
+      unlocked.push('Volcanic Rift');
+    }
+    if (unlocked.length > 0) {
+      for (const name of unlocked) {
+        this.ui.showToast(`🗺️ New map unlocked: ${name}!`, 'reward');
+      }
+      if (this.state === STATE.MAP_SELECT) {
+        this.ui.buildMapSelect();
+      }
+    }
   }
 
   loseLife(amount = 1) {
@@ -409,7 +433,9 @@ export class Game {
   }
 
   toggleSpeed() {
-    this.speed = this.speed === 1 ? 2 : 1;
+    if (this.speed === 1) this.speed = 2;
+    else if (this.speed === 2) this.speed = 3;
+    else this.speed = 1;
     this.ui._refreshSpeedBtn();
   }
 
@@ -462,6 +488,7 @@ export class Game {
 
   addKill(enemy) {
     this.player.totalKills++;
+    this.waveKills = (this.waveKills || 0) + 1;
     this.score += enemy.reward.score || 10;
     this.combo++;
     this.comboTimer = 3.0;

@@ -287,7 +287,7 @@ export class TowerManager {
     // Sell for 75% of total spent
     const def      = TOWER_DEFS[tower.type];
     const baseCost  = def.cost;
-    const upgCost   = tower.upgradesBought.reduce((s, u) => s + u.cost, 0);
+    const upgCost   = tower.upgradesBought.reduce((s, u) => s + def.upgrades[u].cost, 0);
     const sellPrice = Math.floor((baseCost + upgCost) * 0.75);
     this.game.addGold(sellPrice);
     this.game.particles.lootBurst(tower.x, tower.y, 'gold');
@@ -676,6 +676,24 @@ export class TowerManager {
       ctx.shadowBlur  = 8;
       ctx.shadowColor = '#a855f7';
       ctx.strokeRect(-base - 2, -base - 2, base * 2 + 4, base * 2 + 4);
+    }
+
+    // Upgrade level dots
+    const lvl = t.upgradeLevel || 0;
+    if (lvl > 0) {
+      const dotR = Math.max(2, ts * 0.06);
+      const dotSpacing = dotR * 2 + 2;
+      const totalW = lvl * dotSpacing - 2;
+      const dotY = base + dotR + 3;
+      ctx.shadowBlur = 4;
+      ctx.shadowColor = lvl >= 5 ? '#a855f7' : '#fbbf24';
+      ctx.fillStyle   = lvl >= 5 ? '#a855f7' : '#fbbf24';
+      for (let i = 0; i < lvl; i++) {
+        const dotX = -totalW / 2 + i * dotSpacing + dotR;
+        ctx.beginPath();
+        ctx.arc(dotX, dotY, dotR, 0, Math.PI * 2);
+        ctx.fill();
+      }
     }
 
     ctx.restore();

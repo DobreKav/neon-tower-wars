@@ -468,6 +468,10 @@ export class ProgressionSystem {
     }
   }
 
+  getChallengeProgress(ch) {
+    return this._progress[ch.id] || 0;
+  }
+
   claimChallenge(challengeId) {
     const ch = CHALLENGE_POOL.find(c => c.id === challengeId);
     if (!ch) return;

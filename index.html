@@ -10,7 +10,7 @@
   <meta name="description" content="Neon Tower Wars - Ultimate Tower Defense Game">
   <!-- APK: Wrap with Capacitor: npx cap add android, set webDir to this folder -->
   <title>Neon Tower Wars</title>
-  <link rel="stylesheet" href="style.css?v=15">
+  <link rel="stylesheet" href="style.css?v=16">
   <link rel="manifest" href="manifest.json">
 </head>
 <body>
@@ -90,6 +90,10 @@
           <span class="hud-ico">💎</span>
           <span id="hud-gems-hud">0</span>
         </div>
+        <div class="hud-cell hud-score">
+          <span class="hud-ico">⭐</span>
+          <span id="hud-score">0</span>
+        </div>
         <button class="hud-btn-icon" id="btn-speed">1×</button>
         <button class="hud-btn-icon" id="btn-pause">⏸</button>
       </div>
@@ -108,7 +112,7 @@
         <h2 class="dialog-title">⏸ PAUSED</h2>
         <button class="btn btn-primary" id="btn-resume">▶ RESUME</button>
         <button class="btn btn-secondary" id="btn-restart">↺ RESTART</button>
-        <button class="btn btn-secondary" id="btn-main-from-pause">🏠 MAIN MENU</button>
+        <button class="btn btn-secondary" id="btn-menu">🏠 MAIN MENU</button>
       </div>
     </div>
 
@@ -201,6 +205,7 @@
           <p class="daily-subtitle">Log in every day for bigger rewards!</p>
           <div class="daily-calendar" id="daily-calendar"></div>
           <div class="weekly-missions" id="weekly-missions"></div>
+          <div id="daily-challenges"></div>
         </div>
         <div class="dialog-footer">
           <button class="btn btn-primary btn-glow" id="btn-claim-daily">CLAIM TODAY'S REWARD</button>
@@ -285,6 +290,9 @@
 
     <!-- TOAST NOTIFICATIONS -->
     <div id="toast-container"></div>
+
+    <!-- WAVE ANNOUNCEMENT -->
+    <div id="wave-announce" class="hidden"></div>
 
     <!-- FPS COUNTER -->
     <div id="fps-display" class="hidden">FPS: 60</div>

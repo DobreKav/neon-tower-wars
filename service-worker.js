@@ -1,7 +1,7 @@
 // === FILE: service-worker.js ===
 // Cache-first strategy for full offline play
 
-const CACHE_NAME = 'ntw-v15';
+const CACHE_NAME = 'ntw-v16';
 
 const ASSETS_TO_CACHE = [
   './',

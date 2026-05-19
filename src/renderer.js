@@ -103,9 +103,52 @@ export class Renderer {
       }
     }
     oc.stroke();
+
+    // Path direction arrows – walk waypoints and draw chevrons on path cells
+    this._drawPathArrows(oc, game, tileSize, gridOffX, gridOffY);
   }
 
-  _drawEntryExit(ctx) {
+  _drawPathArrows(oc, game, tileSize, gridOffX, gridOffY) {
+    const wps = game.mapData.waypoints;
+    const half = tileSize / 2;
+    const arrowSize = Math.max(4, tileSize * 0.22);
+
+    oc.save();
+    oc.fillStyle   = 'rgba(255,255,255,0.22)';
+    oc.strokeStyle = 'rgba(255,255,255,0.22)';
+    oc.lineWidth   = 1;
+
+    for (let seg = 0; seg < wps.length - 1; seg++) {
+      const a = wps[seg], b = wps[seg + 1];
+      let c = a.col, r = a.row;
+
+      // Determine direction unit
+      const dc = Math.sign(b.col - a.col);
+      const dr = Math.sign(b.row - a.row);
+      const angle = Math.atan2(dr, dc);
+
+      while (c !== b.col || r !== b.row) {
+        // Draw chevron at center of this cell
+        const cx = gridOffX + c * tileSize + half;
+        const cy = gridOffY + r * tileSize + half;
+        oc.save();
+        oc.translate(cx, cy);
+        oc.rotate(angle);
+        oc.beginPath();
+        oc.moveTo(-arrowSize, -arrowSize * 0.6);
+        oc.lineTo(arrowSize * 0.4, 0);
+        oc.lineTo(-arrowSize, arrowSize * 0.6);
+        oc.stroke();
+        oc.restore();
+
+        if (c < b.col) c++;
+        else if (c > b.col) c--;
+        else if (r < b.row) r++;
+        else r--;
+      }
+    }
+    oc.restore();
+  }
     const { tileSize, gridOffX, gridOffY, mapData } = this.game;
     if (!mapData) return;
     const wps = mapData.waypoints;
@@ -132,24 +175,43 @@ export class Renderer {
     ctx.restore();
   }
 
-  // ── HUD canvas layer (range ring for selected tower) ─────────────────────────
+  // ── HUD canvas layer (range ring for selected/hovered tower) ─────────────────────
   renderHUDCanvas(ctx) {
     const { game } = this;
-    // Draw range ring around selected tower
-    const panel = game.ui && game.ui.selectedTowerInst;
-    if (panel) {
-      const t = panel;
+
+    // Range ring for selected tower (panel open)
+    const selected = game.ui && game.ui.selectedTowerInst;
+    if (selected) {
+      const t = selected;
       ctx.save();
       ctx.beginPath();
       ctx.arc(t.x, t.y, t.range, 0, Math.PI * 2);
-      ctx.strokeStyle = 'rgba(0,245,255,0.25)';
+      ctx.strokeStyle = 'rgba(0,245,255,0.35)';
       ctx.lineWidth   = 1.5;
       ctx.setLineDash([4, 4]);
       ctx.stroke();
       ctx.setLineDash([]);
-      ctx.fillStyle = 'rgba(0,245,255,0.04)';
+      ctx.fillStyle = 'rgba(0,245,255,0.05)';
       ctx.fill();
       ctx.restore();
+      return; // already showing selected — skip hover ring
+    }
+
+    // Range ring for hovered tower (just hovering, no panel)
+    if (game.input && game.input.hoverCell) {
+      const { col, row } = game.input.hoverCell;
+      const hoveredTower = game.towers && game.towers.getTowerAt(col, row);
+      if (hoveredTower) {
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(hoveredTower.x, hoveredTower.y, hoveredTower.range, 0, Math.PI * 2);
+        ctx.strokeStyle = 'rgba(255,255,255,0.2)';
+        ctx.lineWidth   = 1;
+        ctx.setLineDash([3, 5]);
+        ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.restore();
+      }
     }
   }
 

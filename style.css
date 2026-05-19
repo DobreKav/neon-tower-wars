@@ -350,6 +350,45 @@ a{text-decoration:none;color:inherit}
 ::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
 ::-webkit-scrollbar-thumb:hover{background:var(--border-bright)}
 
+/* ── WAVE ANNOUNCEMENT ── */
+#wave-announce{
+  position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);
+  z-index:9000;pointer-events:none;
+  font-family:var(--font-mono);font-size:clamp(32px,12vw,72px);font-weight:900;
+  color:var(--cyan);text-shadow:0 0 30px var(--cyan),0 0 60px rgba(0,245,255,.4);
+  letter-spacing:0.15em;white-space:nowrap;
+}
+#wave-announce.wave-announce-show{
+  animation:wave-pop 0.35s cubic-bezier(.2,1.4,.4,1) both;
+}
+#wave-announce.wave-announce-hide{
+  animation:wave-fade 0.45s ease-in both;
+}
+@keyframes wave-pop{
+  from{opacity:0;transform:translate(-50%,-50%) scale(0.4)}
+  to{opacity:1;transform:translate(-50%,-50%) scale(1)}
+}
+@keyframes wave-fade{
+  from{opacity:1;transform:translate(-50%,-50%) scale(1)}
+  to{opacity:0;transform:translate(-50%,-50%) scale(1.3)}
+}
+
+/* ── HUD SCORE ── */
+.hud-score{border-left:1px solid rgba(251,191,36,.25)}
+
+/* ── DAILY CHALLENGES ── */
+#daily-challenges{margin-top:12px;padding-top:10px;border-top:1px solid var(--border)}
+.challenges-title{font-size:13px;color:var(--cyan);letter-spacing:1px;margin:0 0 8px;text-transform:uppercase}
+.challenge-row{display:flex;flex-direction:column;gap:4px;padding:8px;background:var(--bg-card);border-radius:var(--radius-xs);border:1px solid var(--border);margin-bottom:6px}
+.challenge-row.done{border-color:rgba(34,197,94,.4);background:rgba(34,197,94,.06)}
+.ch-info{display:flex;justify-content:space-between;align-items:center}
+.ch-name{font-size:12px;color:var(--text-primary);font-weight:600}
+.ch-reward{font-size:11px;color:var(--text-secondary)}
+.ch-bar-bg{height:4px;background:rgba(255,255,255,.1);border-radius:2px;overflow:hidden}
+.ch-bar-fill{height:100%;background:var(--cyan);transition:width .4s ease;border-radius:2px}
+.challenge-row.done .ch-bar-fill{background:#22c55e}
+.ch-progress{font-size:11px;color:var(--text-secondary);text-align:right}
+
 /* ── RESPONSIVE ── */
 @media(max-width:340px){.tower-btn{width:50px;height:50px}.tb-icon{font-size:18px}.hud-cell{padding:3px 6px;font-size:12px}.btn{padding:12px 16px;font-size:13px;min-height:46px}}
 @media(min-width:480px){.tower-btn{width:64px;height:64px}#btn-start-wave{height:64px;font-size:12px}}

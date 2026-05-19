@@ -322,7 +322,8 @@ export class UISystem {
     const el = document.getElementById('wc-rewards');
     if (el) {
       el.innerHTML = `
-        <div class="reward-row">💰 <strong>+${gold}</strong> Gold</div>
+        <div class="reward-row">� <strong>${this.game.waveKills || 0}</strong> Kills</div>
+        <div class="reward-row">�💰 <strong>+${gold}</strong> Gold</div>
         <div class="reward-row">💎 <strong>+${gems}</strong> Gems</div>
         <div class="reward-row">⭐ <strong>+${xp}</strong> XP</div>
       `;
@@ -385,6 +386,7 @@ export class UISystem {
     this._setText('hud-wave',     `Wave ${g.currentWave}/${g.totalWaves || 0}`);
     this._setText('hud-gold',     `💰 ${g.gold}`);
     this._setText('hud-gems-hud', `💎 ${g.player.gems}`);
+    this._setText('hud-score',    `⭐ ${g.score || 0}`);
 
     // Start-wave button
     const startBtn = document.getElementById('btn-start-wave');
@@ -622,7 +624,7 @@ export class UISystem {
       const gemsEl = document.getElementById('skins-gems');
       if (gemsEl) gemsEl.textContent = this.game.player.gems;
     }
-    if (screenId === 'daily-screen')   this.game.daily.buildCalendar();
+    if (screenId === 'daily-screen') { this.game.daily.buildCalendar(); this._buildChallengesUI(); }
     if (screenId === 'prestige-screen')this.buildPrestigeScreen();
     if (screenId === 'settings-screen')this._syncSettings();
   }
@@ -672,7 +674,27 @@ export class UISystem {
   // ── Speed button ─────────────────────────────────────────────────────────────
   _refreshSpeedBtn() {
     const btn = document.getElementById('btn-speed');
-    if (btn) btn.textContent = this.game.speed >= 2 ? '⏩ 2×' : '▶ 1×';
+    if (!btn) return;
+    if (this.game.speed >= 3) btn.textContent = '⏩ 3×';
+    else if (this.game.speed >= 2) btn.textContent = '⏩ 2×';
+    else btn.textContent = '▶ 1×';
+  }
+
+  // ── Wave announcement ─────────────────────────────────────────────────────────
+  showWaveAnnouncement(waveNum) {
+    const el = document.getElementById('wave-announce');
+    if (!el) return;
+    el.textContent = `WAVE ${waveNum}`;
+    el.classList.remove('hidden', 'wave-announce-hide');
+    el.classList.add('wave-announce-show');
+    setTimeout(() => {
+      el.classList.remove('wave-announce-show');
+      el.classList.add('wave-announce-hide');
+      setTimeout(() => {
+        el.classList.add('hidden');
+        el.classList.remove('wave-announce-hide');
+      }, 500);
+    }, 1400);
   }
 
   // ── DOM helpers ───────────────────────────────────────────────────────────────
@@ -767,5 +789,30 @@ export class UISystem {
   hideCombo() {
     const el = document.getElementById('combo-display');
     if (el) { el.classList.remove('visible', 'pop'); el.classList.add('hidden'); }
+  }
+
+  // ── Daily challenges UI ───────────────────────────────────────────────────────
+  _buildChallengesUI() {
+    const container = document.getElementById('daily-challenges');
+    if (!container || !this.game.progression) return;
+    const challenges = this.game.progression.getTodayChallenges();
+    if (!challenges || !challenges.length) return;
+    const player = this.game.progression;
+    container.innerHTML = `<h3 class="challenges-title">🎯 Daily Challenges</h3>`;
+    challenges.forEach(ch => {
+      const progress = player.getChallengeProgress(ch) || 0;
+      const pct = Math.min(100, Math.round((progress / ch.target) * 100));
+      const done = progress >= ch.target;
+      container.innerHTML += `
+        <div class="challenge-row${done ? ' done' : ''}">
+          <div class="ch-info">
+            <span class="ch-name">${ch.name}</span>
+            <span class="ch-reward">+${ch.reward.gems || 0}💎 +${ch.reward.gold || 0}💰</span>
+          </div>
+          <div class="ch-bar-bg"><div class="ch-bar-fill" style="width:${pct}%"></div></div>
+          <div class="ch-progress">${done ? '✅ Done' : `${progress}/${ch.target}`}</div>
+        </div>
+      `;
+    });
   }
 }
