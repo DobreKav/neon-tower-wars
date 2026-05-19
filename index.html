@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#0a0e1a">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="description" content="Neon Tower Wars - Ultimate Tower Defense Game">
+  <!-- APK: Wrap with Capacitor: npx cap add android, set webDir to this folder -->
+  <title>Neon Tower Wars</title>
+  <link rel="stylesheet" href="style.css?v=15">
+  <link rel="manifest" href="manifest.json">
+</head>
+<body>
+<div id="app">
+
+  <!-- Loading Screen -->
+  <div id="loading-screen" class="screen active">
+    <div class="loading-content">
+      <div class="game-logo">
+        <div class="logo-neon">NEON</div>
+        <div class="logo-main">TOWER WARS</div>
+        <div class="logo-sub">INFINITE DEFENSE</div>
+      </div>
+      <div class="loading-bar-wrap">
+        <div class="loading-bar" id="loading-bar"></div>
+      </div>
+      <div class="loading-text" id="loading-text">Loading systems...</div>
+    </div>
+  </div>
+
+  <!-- Game Canvas -->
+  <canvas id="game-canvas"></canvas>
+
+  <!-- UI Overlay (HTML elements over canvas) -->
+  <div id="ui-overlay">
+
+    <!-- MAIN MENU -->
+    <div id="main-menu" class="screen hidden">
+      <div class="menu-bg"></div>
+      <div class="menu-content">
+        <div class="game-title">
+          <div class="title-neon">NEON</div>
+          <div class="title-main">TOWER WARS</div>
+          <div class="title-tag">INFINITE DEFENSE</div>
+        </div>
+        <div class="menu-player-bar">
+          <div class="player-stat"><span class="pstat-icon">⚡</span><span class="pstat-label">LVL</span><span class="pstat-val" id="menu-level">1</span></div>
+          <div class="player-stat"><span class="pstat-icon">💎</span><span class="pstat-label">GEMS</span><span class="pstat-val" id="menu-gems">0</span></div>
+          <div class="player-stat"><span class="pstat-icon">🏆</span><span class="pstat-label">BEST</span><span class="pstat-val" id="menu-best">0</span></div>
+        </div>
+        <div class="menu-buttons">
+          <button class="btn btn-primary btn-glow" id="btn-play">▶  PLAY</button>
+          <button class="btn btn-secondary" id="btn-daily">🎁  DAILY REWARDS</button>
+          <button class="btn btn-secondary" id="btn-achievements">🏆  ACHIEVEMENTS</button>
+          <button class="btn btn-secondary" id="btn-skins">✨  SKINS</button>
+          <button class="btn btn-secondary" id="btn-settings">⚙  SETTINGS</button>
+        </div>
+        <div class="menu-version">v1.0.0</div>
+      </div>
+    </div>
+
+    <!-- MAP SELECT -->
+    <div id="map-select" class="screen hidden">
+      <div class="screen-header">
+        <button class="btn-back" id="btn-back-map">←</button>
+        <h2 class="screen-title">SELECT MAP</h2>
+      </div>
+      <div class="map-grid" id="map-grid"></div>
+    </div>
+
+    <!-- HUD (in-game overlay) -->
+    <div id="hud" class="hidden">
+      <div class="hud-top">
+        <div class="hud-cell hud-lives">
+          <span class="hud-ico">❤️</span>
+          <span id="hud-lives">20</span>
+        </div>
+        <div class="hud-cell hud-wave-info">
+          <span class="hud-wave-lbl">WAVE</span>
+          <span id="hud-wave">0</span>
+        </div>
+        <div class="hud-cell hud-gold">
+          <span class="hud-ico">💰</span>
+          <span id="hud-gold">200</span>
+        </div>
+        <div class="hud-cell hud-gems">
+          <span class="hud-ico">💎</span>
+          <span id="hud-gems-hud">0</span>
+        </div>
+        <button class="hud-btn-icon" id="btn-speed">1×</button>
+        <button class="hud-btn-icon" id="btn-pause">⏸</button>
+      </div>
+      <div class="hud-xp-bar"><div class="hud-xp-fill" id="hud-xp-fill"></div></div>
+      <div class="hud-bottom">
+        <div class="tower-selector" id="tower-selector">
+          <!-- Populated by uiSystem -->
+        </div>
+        <button class="btn-start-wave" id="btn-start-wave">START WAVE</button>
+      </div>
+    </div>
+
+    <!-- PAUSE MENU -->
+    <div id="pause-menu" class="screen hidden overlay-screen">
+      <div class="dialog">
+        <h2 class="dialog-title">⏸ PAUSED</h2>
+        <button class="btn btn-primary" id="btn-resume">▶ RESUME</button>
+        <button class="btn btn-secondary" id="btn-restart">↺ RESTART</button>
+        <button class="btn btn-secondary" id="btn-main-from-pause">🏠 MAIN MENU</button>
+      </div>
+    </div>
+
+    <!-- WAVE COMPLETE -->
+    <div id="wave-complete" class="screen hidden overlay-screen">
+      <div class="dialog dialog-reward">
+        <div class="wave-complete-header">
+          <span class="wc-wave-label">WAVE</span>
+          <span class="wc-wave-num" id="wc-wave-num">1</span>
+          <span class="wc-complete-text">COMPLETE!</span>
+        </div>
+        <div class="reward-row" id="wc-rewards"></div>
+        <div class="xp-section">
+          <div class="xp-label-row">
+            <span>XP</span>
+            <span id="xp-bar-text">0 / 500</span>
+          </div>
+          <div class="xp-track"><div class="xp-fill" id="xp-fill"></div></div>
+        </div>
+        <button class="btn btn-primary btn-glow" id="btn-next-wave">NEXT WAVE ▶</button>
+        <button class="btn btn-ad" id="btn-double-reward">📺  WATCH AD → 2× REWARD</button>
+      </div>
+    </div>
+
+    <!-- DEFEAT SCREEN -->
+    <div id="defeat-screen" class="screen hidden overlay-screen">
+      <div class="dialog">
+        <h2 class="dialog-title defeat-title">💀 DEFEATED</h2>
+        <div class="defeat-stats" id="defeat-stats"></div>
+        <button class="btn btn-ad" id="btn-continue-ad">📺  WATCH AD → CONTINUE</button>
+        <button class="btn btn-primary" id="btn-retry">↺ RETRY</button>
+        <button class="btn btn-secondary" id="btn-main-from-defeat">🏠 MAIN MENU</button>
+      </div>
+    </div>
+
+    <!-- VICTORY SCREEN -->
+    <div id="victory-screen" class="screen hidden overlay-screen">
+      <div class="dialog dialog-reward">
+        <h2 class="dialog-title">🏆 VICTORY!</h2>
+        <div class="reward-row" id="victory-rewards"></div>
+        <button class="btn btn-primary btn-glow" id="btn-endless">∞ ENDLESS MODE</button>
+        <button class="btn btn-ad" id="btn-double-victory">📺  WATCH AD → 2× REWARDS</button>
+        <button class="btn btn-secondary" id="btn-main-from-victory">🏠 MAIN MENU</button>
+      </div>
+    </div>
+
+    <!-- TOWER UPGRADE PANEL -->
+    <div id="tower-panel" class="side-panel hidden">
+      <div class="panel-head">
+        <div class="panel-tower-icon" id="panel-tower-icon"></div>
+        <div class="panel-tower-info">
+          <div class="panel-tower-name" id="panel-tower-name">Tower</div>
+          <div class="panel-tower-level" id="panel-tower-level">Level 1</div>
+        </div>
+        <button class="panel-close" id="btn-close-panel">✕</button>
+      </div>
+      <div class="panel-stats" id="panel-stats"></div>
+      <div class="panel-targeting" id="panel-targeting"></div>
+      <div class="panel-upgrades" id="panel-upgrades"></div>
+      <div class="panel-footer">
+        <button class="btn btn-sell" id="btn-sell">💰 SELL</button>
+        <button class="btn btn-ultimate" id="btn-ultimate" disabled>⚡ ULTIMATE</button>
+      </div>
+    </div>
+
+    <!-- ACHIEVEMENTS SCREEN -->
+    <div id="achievements-screen" class="screen hidden overlay-screen">
+      <div class="dialog dialog-large">
+        <div class="dialog-header">
+          <h2 class="dialog-title">🏆 ACHIEVEMENTS</h2>
+          <button class="panel-close" id="btn-close-achievements">✕</button>
+        </div>
+        <div class="tab-bar">
+          <button class="tab-btn active" data-tab="combat">Combat</button>
+          <button class="tab-btn" data-tab="progression">Progress</button>
+          <button class="tab-btn" data-tab="collection">Collection</button>
+        </div>
+        <div class="achievement-list" id="achievement-list"></div>
+      </div>
+    </div>
+
+    <!-- DAILY REWARDS SCREEN -->
+    <div id="daily-screen" class="screen hidden overlay-screen">
+      <div class="dialog">
+        <div class="dialog-header">
+          <h2 class="dialog-title neon-text">🎁 DAILY REWARDS</h2>
+          <button class="panel-close" id="btn-close-daily">✕</button>
+        </div>
+        <div class="daily-body">
+          <p class="daily-subtitle">Log in every day for bigger rewards!</p>
+          <div class="daily-calendar" id="daily-calendar"></div>
+          <div class="weekly-missions" id="weekly-missions"></div>
+        </div>
+        <div class="dialog-footer">
+          <button class="btn btn-primary btn-glow" id="btn-claim-daily">CLAIM TODAY'S REWARD</button>
+          <button class="btn btn-ad" id="btn-daily-ad">📺  WATCH AD → BONUS GEMS</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- SKINS SCREEN -->
+    <div id="skins-screen" class="screen hidden overlay-screen">
+      <div class="dialog dialog-large">
+        <div class="dialog-header">
+          <h2 class="dialog-title">✨ SKINS</h2>
+          <div class="gems-display"><span>💎</span><span id="skins-gems">0</span></div>
+          <button class="panel-close" id="btn-close-skins">✕</button>
+        </div>
+        <div class="tab-bar">
+          <button class="tab-btn active" data-tab="tower">Towers</button>
+          <button class="tab-btn" data-tab="map">Map Themes</button>
+          <button class="tab-btn" data-tab="particle">Effects</button>
+        </div>
+        <div class="skins-grid" id="skins-grid"></div>
+      </div>
+    </div>
+
+    <!-- SETTINGS SCREEN -->
+    <div id="settings-screen" class="screen hidden overlay-screen">
+      <div class="dialog">
+        <div class="dialog-header">
+          <h2 class="dialog-title">⚙ SETTINGS</h2>
+          <button class="panel-close" id="btn-close-settings">✕</button>
+        </div>
+        <div class="settings-body">
+          <div class="setting-row">
+            <span>🎵 Music</span>
+            <label class="toggle-switch"><input type="checkbox" id="toggle-music" checked><span class="ts-slider"></span></label>
+          </div>
+          <div class="setting-row">
+            <span>🔊 Sound FX</span>
+            <label class="toggle-switch"><input type="checkbox" id="toggle-sfx" checked><span class="ts-slider"></span></label>
+          </div>
+          <div class="setting-row">
+            <span>📳 Vibration</span>
+            <label class="toggle-switch"><input type="checkbox" id="toggle-haptic" checked><span class="ts-slider"></span></label>
+          </div>
+          <div class="setting-row">
+            <span>✨ Particles</span>
+            <label class="toggle-switch"><input type="checkbox" id="toggle-particles" checked><span class="ts-slider"></span></label>
+          </div>
+          <div class="setting-row">
+            <span>📊 Show FPS</span>
+            <label class="toggle-switch"><input type="checkbox" id="toggle-fps"><span class="ts-slider"></span></label>
+          </div>
+          <div class="setting-row">
+            <span>🌐 Graphics Quality</span>
+            <select class="setting-select" id="select-quality">
+              <option value="low">Low</option>
+              <option value="medium" selected>Medium</option>
+              <option value="high">High</option>
+            </select>
+          </div>
+          <button class="btn btn-danger" id="btn-reset-save">⚠ RESET ALL DATA</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- PRESTIGE / SKILL TREE SCREEN -->
+    <div id="prestige-screen" class="screen hidden overlay-screen">
+      <div class="dialog dialog-large">
+        <div class="dialog-header">
+          <h2 class="dialog-title">⚡ SKILL TREE</h2>
+          <div class="skill-points-display">SP: <span id="skill-points">0</span></div>
+          <button class="panel-close" id="btn-close-prestige">✕</button>
+        </div>
+        <div class="skill-tree-grid" id="skill-tree-grid"></div>
+        <button class="btn btn-prestige" id="btn-prestige">🔥 PRESTIGE (Reset for bonuses)</button>
+      </div>
+    </div>
+
+    <!-- FLOATING DAMAGE NUMBERS -->
+    <div id="damage-layer" style="position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;overflow:hidden;"></div>
+
+    <!-- TOAST NOTIFICATIONS -->
+    <div id="toast-container"></div>
+
+    <!-- FPS COUNTER -->
+    <div id="fps-display" class="hidden">FPS: 60</div>
+
+    <!-- ACHIEVEMENT POPUP -->
+    <div id="achievement-popup" class="hidden"></div>
+
+    <!-- BOSS HEALTH BAR -->
+    <div id="boss-bar" class="hidden">
+      <div class="boss-bar-label" id="boss-bar-name">BOSS</div>
+      <div class="boss-bar-track"><div class="boss-bar-fill" id="boss-bar-fill"></div></div>
+      <div class="boss-bar-phase" id="boss-bar-phase">Phase 1</div>
+    </div>
+
+    <!-- COMBO DISPLAY -->
+    <div id="combo-display" class="hidden">
+      <div class="combo-count" id="combo-count">x2</div>
+      <div class="combo-label">COMBO!</div>
+    </div>
+
+  </div><!-- /ui-overlay -->
+</div><!-- /app -->
+
+<script type="module" src="main.js"></script>
+</body>
+</html>
